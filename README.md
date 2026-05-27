@@ -18,6 +18,10 @@ Sentinel AI is a defensive security audit platform for websites, domains, and se
 
 ## Screens And Diagrams
 
+### Demo Screenshot
+
+![Sentinel AI dashboard preview](docs/dashboard-preview.svg)
+
 GitHub renders the following Mermaid diagrams as visual images.
 
 ### System Architecture
