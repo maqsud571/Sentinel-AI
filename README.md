@@ -24,24 +24,6 @@ Sentinel AI is a defensive security audit platform for websites, domains, and se
 
 GitHub renders the following Mermaid diagrams as visual images.
 
-### System Architecture
-
-```mermaid
-flowchart LR
-    U[User Browser] --> F[Next.js Frontend]
-    F -->|POST /scan| API[FastAPI Backend]
-    API -->|write scan| DB[(PostgreSQL)]
-    API -->|enqueue execute_scan| R[(Redis)]
-    R --> W[Celery Worker]
-    W --> N[Nmap Scanner]
-    W --> H[HTTP Header Analyzer]
-    W --> T[TLS Auditor]
-    W --> AI[Local AI Summary]
-    W --> PDF[PDF Report Generator]
-    W -->|findings, score, report| DB
-    F -->|GET /results/{id}| API
-    F -->|GET /report/{id}| API
-```
 
 ### Scan Lifecycle
 
@@ -122,12 +104,6 @@ Gateway URL:
 
 ```text
 http://localhost
-```
-
-Optional AI model service:
-
-```powershell
-docker compose --profile ai up --build
 ```
 
 The current summary engine is local and rule-based. The `AI_PROVIDER` setting is ready for a future Ollama or cloud model adapter.
@@ -211,64 +187,6 @@ Response:
 }
 ```
 
-### Get Scan Status
-
-```http
-GET /scan/{scan_id}
-```
-
-### Get Full Results
-
-```http
-GET /results/{scan_id}
-```
-
-### Download PDF Report
-
-```http
-GET /report/{scan_id}
-```
-
-### History
-
-```http
-GET /history
-```
-
-### Delete Scan
-
-```http
-DELETE /scan/{scan_id}
-```
-
-## Measure Scan Time In Seconds
-
-Use this PowerShell script to measure exactly how many seconds a scan takes from creation until `completed` or `failed`.
-
-Replace `example.com` only with a target you own or are allowed to test.
-
-```powershell
-$target = "example.com"
-$api = "http://localhost:8000"
-$timer = [System.Diagnostics.Stopwatch]::StartNew()
-
-$scan = Invoke-RestMethod `
-  -Method Post `
-  -Uri "$api/scan" `
-  -ContentType "application/json" `
-  -Body (@{ target = $target; authorized = $true } | ConvertTo-Json)
-
-Write-Host "Scan created:" $scan.id
-
-do {
-  Start-Sleep -Seconds 2
-  $result = Invoke-RestMethod -Uri "$api/results/$($scan.id)"
-  Write-Host ("{0}s status={1} findings={2} score={3}" -f [int]$timer.Elapsed.TotalSeconds, $result.status, $result.findings.Count, $result.score)
-} while ($result.status -notin @("completed", "failed"))
-
-$timer.Stop()
-Write-Host ("Total seconds: {0}" -f [math]::Round($timer.Elapsed.TotalSeconds, 2))
-```
 
 Typical local development timings:
 
